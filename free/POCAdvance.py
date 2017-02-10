@@ -8,10 +8,10 @@ start_time = time.time()
 
 ##################____PARAMETERS____###########################
 
-nameOfCSV = 'search.csv'
+nameOfCSV = 'names.csv'
 sendEmailTo = 'aspanditreg1@yahoo.com'
-maxNumOfSearch = 15
-searchFilter = 0 #past month
+maxNumOfSearch = 20
+searchFilter = 3 #past month
 """
 searchFilter options :
 		0 = no filter
@@ -95,7 +95,7 @@ def nextPage(keyword,i):
 			if(linkG.startswith('/url?q=') or linkG.startswith('/search')):
 				url = getUrl(linkG)
 				if('google.com' in url):
-					break
+					continue
 				if(url.startswith('http')):
 					result_ += '\n' + str(i)+'. '+link.text
 					result_ += '\n'+url
@@ -134,7 +134,7 @@ def searchInGoogle(url):
 			if(linkG.startswith('/url?q=') or linkG.startswith('/search')):
 				url = getUrl(linkG)
 				if('google.com' in url):
-					break
+					continue
 				if(url.startswith('http')):
 					result += '\n' + str(i)+'. '+link.text
 					result += '\n'+url
@@ -154,8 +154,8 @@ with open(nameOfCSV, 'rb') as csvfile:
 		#time.sleep(2)
 print(emailBody)
 finalEmailBody = ''.join([i if ord(i) < 128 else ' ' for i in emailBody])
-mail.sendmail('vivek.ku.mohanty@gmail.com',sendEmailTo,finalEmailBody)
-mail.sendmail('vivek.ku.mohanty@gmail.com','vivek.kumohanty@yahoo.com',finalEmailBody)
+#mail.sendmail('vivek.ku.mohanty@gmail.com',sendEmailTo,finalEmailBody)
+#mail.sendmail('vivek.ku.mohanty@gmail.com','vivek.kumohanty@yahoo.com',finalEmailBody)
 
 mail.close()
 print("--- %s seconds ---" % (time.time() - start_time))
