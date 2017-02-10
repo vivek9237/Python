@@ -5,13 +5,13 @@ import smtplib
 import csv
 import time
 start_time = time.time()
-
+page_num = 0
 ##################____PARAMETERS____###########################
 
-nameOfCSV = 'names.csv'
+nameOfCSV = 'search.csv'
 sendEmailTo = 'aspanditreg1@yahoo.com'
-maxNumOfSearch = 20
-searchFilter = 3 #past month
+maxNumOfSearch = 35
+searchFilter = 2 #past month
 """
 searchFilter options :
 		0 = no filter
@@ -24,10 +24,10 @@ searchFilter options :
 ###############################################################
 
 emailBody = ''
-mail = smtplib.SMTP('smtp.gmail.com',587)
+"""mail = smtplib.SMTP('smtp.gmail.com',587)
 mail.ehlo()
 mail.starttls()
-mail.login('vivek.ku.mohanty@gmail.com','password')
+mail.login('vivek.ku.mohanty@gmail.com','password')"""
 #http://stackoverflow.com/questions/20078816/replace-non-ascii-characters-with-a-single-space
 
 
@@ -71,10 +71,10 @@ def getUrl(linkG):
 		if(linkG.startswith('/')):
 			url = 'https://www.google.com'+linkG
 	return url
-def nextPage(keyword,i):
+def nextPage(keyword,i,page_num):
 	#print(keyword)
 	i_ = 0
-	r = requests.get('https://www.google.co.in/search?q='+keyword+'&rct=j#q='+keyword+'&start=10')
+	r = requests.get('https://www.google.co.in/search?q='+keyword+'&rct=j#q='+keyword+'&start='+str(10*page_num))
 	result_=''
 	prevLink_ = ''
 	data = r.text
@@ -87,6 +87,8 @@ def nextPage(keyword,i):
 		linkG=link.get('href')
 		if(i<=maxNumOfSearch and (i_ == 1) and (link.text is not None) and (link.text <> 'Cached') and (link.text <> 'Similar') and (link.text <> 'More info')and (link.text <> '')):
 			if(link.text == '1' or link.text == '2' or link.text == '3'):
+				page_num = page_num + 1
+				result_ += nextPage(url+'&gws_rd=cr',i,page_num)
 				break
 			if(link.text == 'Advanced search'):
 				break
@@ -109,6 +111,7 @@ def nextPage(keyword,i):
 
 def searchInGoogle(url):
 	url.replace(" ","%20")
+	page_num = 0
 	result = ''
 	prevLink = ''
 	r = requests.get(getSearchUrl(url,searchFilter))
@@ -125,7 +128,8 @@ def searchInGoogle(url):
 		#if(i<=20 and (link.text is not None) and (link.text <> 'Cached') and (link.text <> 'Similar') and (link.text <> 'More info')and (link.text <> '')):
 		if(i<=maxNumOfSearch and (link.text is not None) and (link.text <> 'Cached') and (link.text <> 'Similar') and (link.text <> 'More info')and (link.text <> '')):
 			if(link.text == '2'):
-				result += nextPage(url+'&gws_rd=cr',i)
+				page_num += 1
+				result += nextPage(url+'&gws_rd=cr',i,page_num)
 				break
 			if(link.text == 'Advanced search'):
 				break
@@ -157,6 +161,6 @@ finalEmailBody = ''.join([i if ord(i) < 128 else ' ' for i in emailBody])
 #mail.sendmail('vivek.ku.mohanty@gmail.com',sendEmailTo,finalEmailBody)
 #mail.sendmail('vivek.ku.mohanty@gmail.com','vivek.kumohanty@yahoo.com',finalEmailBody)
 
-mail.close()
+#mail.close()
 print("--- %s seconds ---" % (time.time() - start_time))
 viv= raw_input("END")
