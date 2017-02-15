@@ -24,7 +24,7 @@ with open("essconfig.cfg") as ifh:
 nameOfCSV = str(config.get("Foo", "nameOfCSV"))
 sendEmailTo = str(config.get("Foo", "sendEmailTo"))
 maxNumOfSearch = int(config.get("Foo", "maxNumOfSearch"))
-searchFilter = int(config.get("Foo", "searchFilter")) #past month
+searchFilter = int(config.get("Foo", "searchFilter"))
 minWait = int(config.get("Foo", "minWait"))
 maxWait = int(config.get("Foo", "maxWait"))
 smtp = str(config.get("Foo", "smtp"))
@@ -32,37 +32,33 @@ port = int(config.get("Foo", "port"))
 userName = str(config.get("Foo", "userName"))
 password = str(config.get("Foo", "password"))
 subject = str(config.get("Foo", "subject"))
-"""
-searchFilter options :
-		0 = no filter
-		1 = past hour
-		2 = past 24 hours
-		3 = past month
-		4 = past year
-		5 = Verbatim
-"""
+
 ###############################################################
 
 emailBody = ''
-"""mail = smtplib.SMTP('smtp.gmail.com',587)
-mail.ehlo()
-mail.starttls()
-mail.login('vivek.ku.mohanty@gmail.com','password')"""
-#http://stackoverflow.com/questions/20078816/replace-non-ascii-characters-with-a-single-space
+
+def sendEmail(toAdd,username,password,subject,emailBody):
+	server = smtplib.SMTP(smtp,port)
+	server.ehlo()
+	server.starttls()
+	server.login(username,password)
+	server.sendmail(username, toAdd,"Subject: "+subject+"\n\n"+emailBody)
+	server.close()    
+	print 'Email Sent.'
 
 
 def introDelay():
-	wait = randint(25,60)
+	wait = randint(minWait,maxWait)
 	print("bot will wait for "+str(wait)+" secs")
 	sleep(wait)
 
 def getSearchUrl(keyword, searchFilter_):
-	introDelay()
 	r  = requests.get("https://www.google.co.in/search?q="+keyword+"&rct=j")
 	data = r.text
 	soup = BeautifulSoup(data,"html.parser")
 	if(searchFilter_ == 0):
 		return "https://www.google.co.in/search?q="+keyword+"&rct=j"
+	introDelay()
 	if(searchFilter_ == 1):
 		searchFilterText = 'Past hour'
 	else:
@@ -140,29 +136,22 @@ def nextPage(nextPageUrl,page_num_,i):
 
 def searchInGoogle(url):
 	page_num = 1
-	#print(url)
 	url.replace(" ","%20")
 	page_num += 1
 	result = ''
 	prevLink = ''
 	introDelay()
 	r = requests.get(getSearchUrl(url,searchFilter))
-	#r = requests.get("https://www.google.co.in/search?q="+url+"&rct=j")
 	data = r.text
 	soup = BeautifulSoup(data,"html.parser")
 	i=1000
 	result += '\n--------------------------------------------------------'
 	for link in soup.find_all('a'):
-		#print("kana houchi")
-		#print(link.text)
-		#print(link.get('href'))
 		if(link.text=='Verbatim' or link.text=='Reset tools'):
 			i=1
-			#print("Verbatim")
 			print('Connection Successful')
 			continue
 		linkG=link.get('href')
-		#if(i<=20 and (link.text is not None) and (link.text <> 'Cached') and (link.text <> 'Similar') and (link.text <> 'More info')and (link.text <> '')):
 		if(i<=maxNumOfSearch and (link.text is not None) and (link.text <> 'Cached') and (link.text <> 'Similar') and (link.text <> 'More info')and (link.text <> '')):
 			if(link.text == str(page_num)):
 				result += nextPage(getUrl(linkG),page_num,i)
@@ -192,15 +181,12 @@ def searchInGoogle(url):
 with open(nameOfCSV, 'rb') as csvfile:
 	spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
 	for row in spamreader:
-		print ('Searching for : '+', '.join(row))
-		emailBody += '\nSearch result for : '+', '.join(row)
-		emailBody += searchInGoogle(', '.join(row))
+		print ('Searching for : '+' '.join(row))
+		emailBody += '\nSearch result for : '+' '.join(row)
+		emailBody += searchInGoogle(' '.join(row))
 print(emailBody)
 finalEmailBody = ''.join([i if ord(i) < 128 else ' ' for i in emailBody])
-#mail.sendmail('vivek.ku.mohanty@gmail.com',sendEmailTo,finalEmailBody)
-#mail.sendmail('vivek.ku.mohanty@gmail.com','vivek.kumohanty@yahoo.com',finalEmailBody)
-
-#mail.close()
+sendEmail(sendEmailTo,userName,password,subject,finalEmailBody)
 print("--- %s seconds ---" % (time.time() - start_time))
-print("Time taken = "+str(math.floor((time.time() - start_time)/60))+" mins and "+str(math.floor((time.time() - start_time)%60))+" secs")
+print("Time taken = "+str(int(math.floor((time.time() - start_time)/60)))+" mins and "+str(int(math.floor((time.time() - start_time)%60)))+" secs")
 viv= raw_input("END")
