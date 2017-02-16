@@ -10,6 +10,15 @@ import math
 import ConfigParser
 from functools import partial
 from itertools import chain
+import email
+import os
+from email.MIMEMultipart import MIMEMultipart
+from email.Utils import COMMASPACE
+from email.MIMEBase import MIMEBase
+from email.parser import Parser
+from email.MIMEImage import MIMEImage
+from email.MIMEText import MIMEText
+from email.MIMEAudio import MIMEAudio
 
 
 start_time = time.time()
@@ -37,14 +46,20 @@ subject = str(config.get("Foo", "subject"))
 
 emailBody = ''
 
+
 def sendEmail(toAdd,username,password,subject,emailBody):
 	server = smtplib.SMTP(smtp,port)
 	server.ehlo()
 	server.starttls()
 	server.login(username,password)
-	server.sendmail(username, toAdd,"Subject: "+subject+"\n\n"+emailBody)
-	server.close()    
-	print 'Email Sent.'
+	msg = email.MIMEMultipart.MIMEMultipart()
+	msg['From'] = username
+	msg['To'] = toAdd
+	msg['Subject'] = subject
+	msg.attach(MIMEText(emailBody))
+	#msg.attach(MIMEText('\nsent via python', 'plain')) # just a way to say.. Ha! I use Python.
+	server.sendmail(username,toAdd,msg.as_string())
+	server.quit()
 
 
 def introDelay():
@@ -184,9 +199,9 @@ with open(nameOfCSV, 'rb') as csvfile:
 		print ('Searching for : '+' '.join(row))
 		emailBody += '\nSearch result for : '+' '.join(row)
 		emailBody += searchInGoogle(' '.join(row))
-print(emailBody)
-finalEmailBody = ''.join([i if ord(i) < 128 else ' ' for i in emailBody])
-sendEmail(sendEmailTo,userName,password,subject,finalEmailBody)
+finalEmailBody = ''.join([i if (ord(i) < 128) else ' ' for i in emailBody])
+print(finalEmailBody)
+sendEmail(sendEmailTo,userName,password,subject,str(finalEmailBody))
 print("--- %s seconds ---" % (time.time() - start_time))
 print("Time taken = "+str(int(math.floor((time.time() - start_time)/60)))+" mins and "+str(int(math.floor((time.time() - start_time)%60)))+" secs")
 viv= raw_input("END")
