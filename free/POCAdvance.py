@@ -48,18 +48,22 @@ emailBody = ''
 
 
 def sendEmail(toAdd,username,password,subject,emailBody):
-	server = smtplib.SMTP(smtp,port)
-	server.ehlo()
-	server.starttls()
-	server.login(username,password)
-	msg = email.MIMEMultipart.MIMEMultipart()
-	msg['From'] = username
-	msg['To'] = toAdd
-	msg['Subject'] = subject
-	msg.attach(MIMEText(emailBody))
-	#msg.attach(MIMEText('\nsent via python', 'plain')) # just a way to say.. Ha! I use Python.
-	server.sendmail(username,toAdd,msg.as_string())
-	server.quit()
+	try:
+		server = smtplib.SMTP(smtp,port)
+		server.ehlo()
+		server.starttls()
+		server.login(username,password)
+		msg = email.MIMEMultipart.MIMEMultipart()
+		msg['From'] = username
+		msg['To'] = toAdd
+		msg['Subject'] = subject
+		msg.attach(MIMEText(emailBody))
+		#msg.attach(MIMEText('\nsent via python', 'plain')) # just a way to say.. Ha! I use Python.
+		server.sendmail(username,toAdd,msg.as_string())
+		server.quit()
+		print("Mail Sent.")
+	except:
+		print("Error while sending mail.")
 
 
 def introDelay():
@@ -73,7 +77,7 @@ def getSearchUrl(keyword, searchFilter_):
 	soup = BeautifulSoup(data,"html.parser")
 	if(searchFilter_ == 0):
 		return "https://www.google.co.in/search?q="+keyword+"&rct=j"
-	introDelay()
+	#introDelay()
 	if(searchFilter_ == 1):
 		searchFilterText = 'Past hour'
 	else:
@@ -112,7 +116,7 @@ def nextPage(nextPageUrl,page_num_,i):
 	#print(keyword)
 	page_num_ += 1
 	j = 0
-	introDelay()
+	#introDelay()
 	r = requests.get(nextPageUrl)
 	result_=''
 	prevLink_ = ''
@@ -164,7 +168,7 @@ def searchInGoogle(url):
 	for link in soup.find_all('a'):
 		if(link.text=='Verbatim' or link.text=='Reset tools'):
 			i=1
-			print('Connection Successful')
+			#print('Connection Successful')
 			continue
 		linkG=link.get('href')
 		if(i<=maxNumOfSearch and (link.text is not None) and (link.text <> 'Cached') and (link.text <> 'Similar') and (link.text <> 'More info')and (link.text <> '')):
@@ -201,7 +205,11 @@ with open(nameOfCSV, 'rb') as csvfile:
 		emailBody += searchInGoogle(' '.join(row))
 finalEmailBody = ''.join([i if (ord(i) < 128) else ' ' for i in emailBody])
 print(finalEmailBody)
+print("preparing searchResults.txt file..")
+f= open("searchResults.txt","w+")
+f.write(finalEmailBody)
+f.close
+print("file prepared.")
 sendEmail(sendEmailTo,userName,password,subject,str(finalEmailBody))
 print("--- %s seconds ---" % (time.time() - start_time))
 print("Time taken = "+str(int(math.floor((time.time() - start_time)/60)))+" mins and "+str(int(math.floor((time.time() - start_time)%60)))+" secs")
-viv= raw_input("END")
