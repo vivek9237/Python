@@ -30,7 +30,7 @@ class Helper:
 config = ConfigParser.RawConfigParser(allow_no_value=True)
 with open("essconfig.cfg") as ifh:
 	config.readfp(Helper("Foo", ifh))
-nameOfCSV = str(config.get("Foo", "nameOfCSV"))
+nameOfCSV = raw_input("Enter the csv file name : ")#str(config.get("Foo", "nameOfCSV"))
 sendEmailTo = str(config.get("Foo", "sendEmailTo"))
 maxNumOfSearch = int(config.get("Foo", "maxNumOfSearch"))
 searchFilter = int(config.get("Foo", "searchFilter"))
@@ -40,7 +40,8 @@ smtp = str(config.get("Foo", "smtp"))
 port = int(config.get("Foo", "port"))
 userName = str(config.get("Foo", "userName"))
 password = str(config.get("Foo", "password"))
-subject = str(config.get("Foo", "subject"))
+subject = raw_input("Enter the Subject of the mail : ")#str(config.get("Foo", "subject"))
+outputFileName = raw_input("Enter the output file name without extension: ")
 
 ###############################################################
 
@@ -206,7 +207,7 @@ with open(nameOfCSV, 'rb') as csvfile:
 finalEmailBody = ''.join([i if (ord(i) < 128) else ' ' for i in emailBody])
 print(finalEmailBody)
 print("preparing searchResults.txt file..")
-f= open("searchResults.txt","w+")
+f= open(outputFileName+".txt","w+")
 f.write(finalEmailBody)
 f.close
 print("file prepared.")
