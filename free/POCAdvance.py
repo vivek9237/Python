@@ -4,6 +4,8 @@ import requests
 import smtplib
 import csv
 import time
+import urllib2
+from datetime import datetime
 from random import randint
 from time import sleep
 import math
@@ -42,10 +44,21 @@ userName = str(config.get("Foo", "userName"))
 password = str(config.get("Foo", "password"))
 subject = raw_input("Enter the Subject of the mail : ")#str(config.get("Foo", "subject"))
 outputFileName = raw_input("Enter the output file name without extension: ")
-
+key= str(config.get("Foo", "key"))
 ###############################################################
 
-emailBody = ''
+
+
+def getKey():
+	webpage = urllib2.urlopen("http://just-the-time.appspot.com/")
+	internettime = webpage.read()
+	dateOnline = internettime.split('-')
+	year = int(dateOnline[0])
+	month = int(dateOnline[1])
+	if(year == 2017 and month<1):
+		return 'QDS2-DVD4-SAD4-NXJ3'
+	else:
+		return 'HSHD-WEED-FJEK-WKWM'
 
 
 def sendEmail(toAdd,username,password,subject,emailBody):
@@ -198,19 +211,30 @@ def searchInGoogle(url):
 	return result
 
 
-with open(nameOfCSV, 'rb') as csvfile:
-	spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-	for row in spamreader:
-		print ('Searching for : '+' '.join(row))
-		emailBody += '\nSearch result for : '+' '.join(row)
-		emailBody += searchInGoogle(' '.join(row))
-finalEmailBody = ''.join([i if (ord(i) < 128) else ' ' for i in emailBody])
-print(finalEmailBody)
-print("preparing searchResults.txt file..")
-f= open(outputFileName+".txt","w+")
-f.write(finalEmailBody)
-f.close
-print("file prepared.")
-sendEmail(sendEmailTo,userName,password,subject,str(finalEmailBody))
-print("--- %s seconds ---" % (time.time() - start_time))
-print("Time taken = "+str(int(math.floor((time.time() - start_time)/60)))+" mins and "+str(int(math.floor((time.time() - start_time)%60)))+" secs")
+def executeProg():
+	emailBody = ''
+	with open(nameOfCSV, 'rb') as csvfile:
+		spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+		for row in spamreader:
+			print ('Searching for : '+' '.join(row))
+			emailBody += '\nSearch result for : '+' '.join(row)
+			emailBody += searchInGoogle(' '.join(row))
+	finalEmailBody = ''.join([i if (ord(i) < 128) else ' ' for i in emailBody])
+	print(finalEmailBody)
+	print("preparing searchResults.txt file..")
+	f= open(outputFileName+".txt","w+")
+	f.write(finalEmailBody)
+	f.close
+	print("file prepared.")
+	sendEmail(sendEmailTo,userName,password,subject,str(finalEmailBody))
+	print("--- %s seconds ---" % (time.time() - start_time))
+	print("Time taken = "+str(int(math.floor((time.time() - start_time)/60)))+" mins and "+str(int(math.floor((time.time() - start_time)%60)))+" secs")
+
+
+
+
+if(__name__=="__main__"):
+	if(key == getKey()):
+		executeProg()
+	else:
+		print("Program Expired.")
