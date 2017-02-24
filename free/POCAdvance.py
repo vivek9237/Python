@@ -4,6 +4,7 @@ import requests
 import smtplib
 import csv
 import time
+import sys
 import urllib2
 from datetime import datetime
 from random import randint
@@ -21,10 +22,18 @@ from email.parser import Parser
 from email.MIMEImage import MIMEImage
 from email.MIMEText import MIMEText
 from email.MIMEAudio import MIMEAudio
+import logging
 
-
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler('bot.log')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+#cmdargs = str(sys.argv)
 start_time = time.time()
-
+count = 0
 ##################____PARAMETERS____###########################
 class Helper:
 	def __init__(self, section, file):
@@ -32,7 +41,7 @@ class Helper:
 config = ConfigParser.RawConfigParser(allow_no_value=True)
 with open("essconfig.cfg") as ifh:
 	config.readfp(Helper("Foo", ifh))
-nameOfCSV = raw_input("Enter the csv file name : ")#str(config.get("Foo", "nameOfCSV"))
+nameOfCSV = str(config.get("Foo", "nameOfCSV"))#raw_input("Enter the csv file name : ")
 sendEmailTo = str(config.get("Foo", "sendEmailTo"))
 maxNumOfSearch = int(config.get("Foo", "maxNumOfSearch"))
 searchFilter = int(config.get("Foo", "searchFilter"))
@@ -42,12 +51,33 @@ smtp = str(config.get("Foo", "smtp"))
 port = int(config.get("Foo", "port"))
 userName = str(config.get("Foo", "userName"))
 password = str(config.get("Foo", "password"))
-subject = raw_input("Enter the Subject of the mail : ")#str(config.get("Foo", "subject"))
-outputFileName = raw_input("Enter the output file name without extension: ")
+subject = str(config.get("Foo", "subject"))#str(sys.argv[2])#raw_input("Enter the Subject of the mail : ")
+outputFileName = "SearchResults"#str(sys.argv[3])#raw_input("Enter the output file name without extension: ")
 key= str(config.get("Foo", "key"))
 ###############################################################
-
-
+for i in sys.argv:
+    count += 1
+    if(str(i)=='-csvfile'):
+        nameOfCSV = str(sys.argv[count])
+    if(str(i)=='-subject'):
+        subject = str(sys.argv[count])
+    if(str(i)=='-outputfile'):
+        outputFileName = str(sys.argv[count])
+    if(str(i)=='-help'):
+        print("\n**************HELP**************")
+        print("\n*Arguments that can be passed -")
+        print("\n\t-csvfile <csvFileName.csv>")
+        print("\n\t-subject <Subject for Email>")
+        print("\n\t-outputfile <outputFileName>")
+        print("\n*Search Filters -")
+        print("\n\t0 = no filter")
+        print("\n\t1 = past hour")
+        print("\n\t2 = past 24 hours")
+        print("\n\t3 = past month")
+        print("\n\t4 = past year")
+        print("\n\t5 = Verbatim")
+        print("\n**************END**************")
+        exit()
 
 def getKey():
 	webpage = urllib2.urlopen("http://just-the-time.appspot.com/")
@@ -55,7 +85,7 @@ def getKey():
 	dateOnline = internettime.split('-')
 	year = int(dateOnline[0])
 	month = int(dateOnline[1])
-	if(year == 2017 and month<1):
+	if(year == 2017 and month<3):
 		return 'QDS2-DVD4-SAD4-NXJ3'
 	else:
 		return 'HSHD-WEED-FJEK-WKWM'
@@ -75,14 +105,14 @@ def sendEmail(toAdd,username,password,subject,emailBody):
 		#msg.attach(MIMEText('\nsent via python', 'plain')) # just a way to say.. Ha! I use Python.
 		server.sendmail(username,toAdd,msg.as_string())
 		server.quit()
-		print("Mail Sent.")
+		logger.info("Mail Sent.")
 	except:
-		print("Error while sending mail.")
+		logger.info("Error while sending mail.")
 
 
 def introDelay():
 	wait = randint(minWait,maxWait)
-	print("bot will wait for "+str(wait)+" secs")
+	logger.info("bot will wait for "+str(wait)+" secs")
 	sleep(wait)
 
 def getSearchUrl(keyword, searchFilter_):
@@ -112,7 +142,7 @@ def getSearchUrl(keyword, searchFilter_):
 	for link in soup.find_all('a'):
 		if(link.text == searchFilterText):
 			url = link.get('href')
-			print(searchFilterText+ " filter applied.")
+			logger.info(searchFilterText+ " filter applied.")
 			break
 	return getUrl(url)
 
@@ -127,7 +157,7 @@ def getUrl(linkG):
 			url = 'https://www.google.com'+linkG
 	return url
 def nextPage(nextPageUrl,page_num_,i):
-	#print(keyword)
+	#logger.info(keyword)
 	page_num_ += 1
 	j = 0
 	#introDelay()
@@ -156,14 +186,14 @@ def nextPage(nextPageUrl,page_num_,i):
 					continue
 				if(url.startswith('http')):
 					result_ += '\n' + str(i)+'. '+link.text
-					#print ('\n' + str(i)+'. '+link.text)
+					logger.info ('\n' + str(i)+'. '+link.text)
 					result_ += '\n'+url
-					#print('\n'+url)
+					logger.info('\n'+url)
 					result_ += '\n'
 					i+=1
 					prevLink_ = url
-					#print (link.text)
-					#print(linkG)
+					logger.info (link.text)
+					logger.info(linkG)
 	#result_ += '\n--------------------------------------------------------'
 	return result_
 
@@ -182,16 +212,16 @@ def searchInGoogle(url):
 	for link in soup.find_all('a'):
 		if(link.text=='Verbatim' or link.text=='Reset tools'):
 			i=1
-			#print('Connection Successful')
+			#logger.info('Connection Successful')
 			continue
 		linkG=link.get('href')
 		if(i<=maxNumOfSearch and (link.text is not None) and (link.text <> 'Cached') and (link.text <> 'Similar') and (link.text <> 'More info')and (link.text <> '')):
 			if(link.text == str(page_num)):
 				result += nextPage(getUrl(linkG),page_num,i)
-				#print("next page ku gala")
+				#logger.info("next page ku gala")
 				break
 			if(link.text == 'Advanced search'):
-				#print("advance")
+				#logger.info("advance")
 				break
 			if(getUrl(linkG) == prevLink):
 					continue
@@ -201,9 +231,9 @@ def searchInGoogle(url):
 					continue
 				if(url.startswith('http')):
 					result += '\n' + str(i)+'. '+link.text
-					#print('\n' + str(i)+'. '+link.text)
+					logger.info('\n' + str(i)+'. '+link.text)
 					result += '\n'+url
-					#print('\n' + str(i)+'. '+link.text)
+					logger.info('\n' + str(i)+'. '+link.text)
 					result += '\n'
 					i+=1
 					prevLink = url
@@ -212,23 +242,24 @@ def searchInGoogle(url):
 
 
 def executeProg():
+	logger.info('Program started!')
 	emailBody = ''
 	with open(nameOfCSV, 'rb') as csvfile:
 		spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
 		for row in spamreader:
-			print ('Searching for : '+' '.join(row))
+			logger.info ('Searching for : '+' '.join(row))
 			emailBody += '\nSearch result for : '+' '.join(row)
 			emailBody += searchInGoogle(' '.join(row))
 	finalEmailBody = ''.join([i if (ord(i) < 128) else ' ' for i in emailBody])
-	print(finalEmailBody)
-	print("preparing searchResults.txt file..")
+	logger.info(finalEmailBody)
+	logger.info("preparing searchResults.txt file..")
 	f= open(outputFileName+".txt","w+")
 	f.write(finalEmailBody)
 	f.close
-	print("file prepared.")
-	sendEmail(sendEmailTo,userName,password,subject,str(finalEmailBody))
-	print("--- %s seconds ---" % (time.time() - start_time))
-	print("Time taken = "+str(int(math.floor((time.time() - start_time)/60)))+" mins and "+str(int(math.floor((time.time() - start_time)%60)))+" secs")
+	logger.info("file prepared.")
+	#sendEmail(sendEmailTo,userName,password,subject,str(finalEmailBody))
+	logger.info("--- %s seconds ---" % (time.time() - start_time))
+	logger.info("Time taken = "+str(int(math.floor((time.time() - start_time)/60)))+" mins and "+str(int(math.floor((time.time() - start_time)%60)))+" secs")
 
 
 
@@ -236,5 +267,7 @@ def executeProg():
 if(__name__=="__main__"):
 	if(key == getKey()):
 		executeProg()
+		logger.info('Program Ended!')
 	else:
-		print("Program Expired.")
+		logger.info("Program Expired.")
+
