@@ -3,48 +3,48 @@ import sys
 import time
 import types
 import sl4a
-try:  
-  import gdata.docs.service
+try:	
+	import gdata.docs.service
 except ImportError:
-  gdata = None
+	gdata = None
 
 droid = sl4a.Android()
 
 def test_vibrate():
-  result = droid.vibrate()
-  return result.error is None
+	result = droid.vibrate()
+	return result.error is None
 
 
 #
 def test_alert_dialog(title, message):
-  droid.dialogCreateAlert(title, message)
-  droid.dialogSetPositiveButtonText('Continue')
-  droid.dialogShow()
-  response = droid.dialogGetResponse().result
-  return response['which'] == 'positive'
+	droid.dialogCreateAlert(title, message)
+	droid.dialogSetPositiveButtonText('Continue')
+	droid.dialogShow()
+	response = droid.dialogGetResponse().result
+	return response['which'] == 'positive'
 #
 def test_alert_dialog_with_buttons(title,message):
-  droid.dialogCreateAlert(title, message)
-  droid.dialogSetPositiveButtonText('Yes')
-  droid.dialogSetNegativeButtonText('No')
-  droid.dialogSetNeutralButtonText('Cancel')
-  droid.dialogShow()
-  response = droid.dialogGetResponse().result
-  return response['which'] in ('positive', 'negative', 'neutral')
+	droid.dialogCreateAlert(title, message)
+	droid.dialogSetPositiveButtonText('Yes')
+	droid.dialogSetNegativeButtonText('No')
+	droid.dialogSetNeutralButtonText('Cancel')
+	droid.dialogShow()
+	response = droid.dialogGetResponse().result
+	return response['which'] in ('positive', 'negative', 'neutral')
 
 
 #
 def test_alert_dialog_with_list():
-  title = 'Alert'
-  droid.dialogCreateAlert(title)
-  droid.dialogSetItems(['foo', 'bar', 'baz'])
-  droid.dialogShow()
-  response = droid.dialogGetResponse().result
-  return True
+	title = 'Alert'
+	droid.dialogCreateAlert(title)
+	droid.dialogSetItems(['foo', 'bar', 'baz'])
+	droid.dialogShow()
+	response = droid.dialogGetResponse().result
+	return True
 
 def test_make_toast(message):
-  result = droid.makeToast(message)
-  return result.error is None
+	result = droid.makeToast(message)
+	return result.error is None
 sys.stdout.flush()
 
 test_alert_dialog("Reciprocal Checker upto 3 decimal points!!!")
@@ -62,7 +62,7 @@ while(chance>0):
 	rec = round(1.0/i,3)
 	if(ans == rec):
 		end_time = time()
-		print "\nRight!!"
+		#print "\nRight!!"
 		time_taken = int(end_time - start_time)
 		sys.stdout.flush()
 		if(time_taken<3):
@@ -75,7 +75,8 @@ while(chance>0):
 			test_make_toast("Bad time response")
 			score += 0.5
 	else:
-		print "\nWrong!!\nRight Answer is "+str(rec)
+		#print "\nWrong!!\nRight Answer is "+str(rec)
 	#raw_input("\nPress enter to continue.....")
 	chance -= 1
-print "\n\nFinal Score = "+str(score)
+
+#print "\n\nFinal Score = "+str(score)
