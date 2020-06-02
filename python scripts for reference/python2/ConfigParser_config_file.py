@@ -1,6 +1,6 @@
 import ConfigParser
 
-config_file = 'config.ini'
+config_file = 'sampleConfig'
 
 def load_config_file(config_file):
     with open(config_file) as f:
