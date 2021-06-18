@@ -40,6 +40,7 @@ W = "1,1|1,2|1,3|2,4|2,5|3,1|3,2|3,3|4,4|4,5|5,1|5,2|5,3"
 X = "1,1|1,2|1,4|1,5|2,3|3,3|4,1|4,2|4,4|4,5"
 Y = "1,1|1,2|1,3|1,5|2,3|2,5|3,3|3,5|4,1|4,2|4,3|4,4"
 Z = "1,1|1,4|1,5|2,1|2,3|2,5|3,1|3,3|3,5|4,1|4,2|4,5"
+space = "1,5|2,5|3,5|4,5|5,5"
 text = input("Enter Text = ")
 text = text.upper()
 item = "0"
@@ -124,6 +125,9 @@ for ch in text:
     if (ch == 'Z'):
         cells = Z.split("|")
         print ('z')
+    if (ch == ' '):
+        cells = space.split("|")
+        print (' ')
     for cell in cells:
         code1 = cell.split(",")
         count = 0
@@ -141,7 +145,7 @@ for ch in text:
         print (str(row)+","+str(col))
     coli = coll+1
 format1 = workbook.add_format({'bg_color': '#000000','font_color': '#000000'})
-worksheet.set_column(0, 100, 2.2)
+worksheet.set_column(0, 1000, 2.2)
 
 worksheet.conditional_format('A1:ZZ10', {'type': 'cell','criteria': '>=','value': '1', 'format': format1})
 
